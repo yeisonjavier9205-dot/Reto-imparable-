@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071a2b">
+<title>Reto Imparable — Demo</title>
+<style>
+:root{--bg:#071a2b;--panel:#0d2940;--cyan:#35e0d0;--gold:#ffd166;--text:#effaff;--muted:#a9c4d3;--red:#ff6b78}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top,#123a53,var(--bg) 60%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:560px;margin:auto;padding:18px 14px 28px}.brand{text-align:center;margin:8px 0 16px}.brand .logo{font-size:42px}.brand h1{margin:2px 0;color:var(--cyan);letter-spacing:1px;font-size:clamp(26px,7vw,36px)}.brand p{margin:5px 0;color:var(--muted);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.stat{background:rgba(13,41,64,.9);border:1px solid #24506a;border-radius:14px;padding:11px 6px;text-align:center}.stat span{display:block;font-size:12px;color:var(--muted)}.stat strong{font-size:21px;color:var(--gold)}
+.gamebox{background:#061522;border:2px solid #236078;border-radius:20px;overflow:hidden;position:relative;box-shadow:0 12px 35px #0005}.gamehead{display:flex;justify-content:space-between;padding:10px 13px;color:var(--muted);font-size:12px}.arena{height:min(53vh,420px);min-height:300px;position:relative;overflow:hidden;background:linear-gradient(#0b2740,#071522);touch-action:manipulation}.arena:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#35e0d011 1px,transparent 1px),linear-gradient(90deg,#35e0d011 1px,transparent 1px);background-size:36px 36px;transform:perspective(240px) rotateX(12deg);transform-origin:bottom}
+.player{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:38px;z-index:3;filter:drop-shadow(0 0 9px #35e0d0)}.item{position:absolute;top:-40px;font-size:27px;z-index:2;user-select:none}.lanehint{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:11px;color:#91b7c9;z-index:1}.overlay{position:absolute;inset:0;background:#04111de8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:5}.overlay h2{font-size:26px;margin:0 0 8px}.overlay p{color:var(--muted);line-height:1.5;margin:4px 0 16px}.btn{border:0;border-radius:13px;background:linear-gradient(135deg,var(--cyan),#1ab5c2);color:#06212c;font-size:16px;font-weight:800;padding:13px 20px;cursor:pointer;box-shadow:0 5px 18px #35e0d033}.btn.secondary{background:#17394f;color:var(--text);border:1px solid #316078;box-shadow:none}.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.controls .btn{font-size:14px;padding:12px 8px}.card{margin-top:14px;padding:15px;background:var(--panel);border:1px solid #24506a;border-radius:16px}.card h3{margin:0 0 8px;font-size:16px}.card p,.card li{color:var(--muted);font-size:13px;line-height:1.5}.card ul{padding-left:19px;margin:8px 0}.notice{border-left:3px solid var(--gold);padding:9px 11px;background:#ffd16612;border-radius:5px;color:#ffe7a7;font-size:12px;line-height:1.5}.foot{text-align:center;color:#7393a7;font-size:11px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand"><div class="logo">⚡</div><h1>RETO IMPARABLE</h1><p>¡Muévete rápido, recoge puntos y supera tu récord!</p></header>
+  
+  <section class="card" id="accountCard" style="margin-top:12px">
+    <h3>👤 Tu cuenta</h3>
+    <p id="accountStatus">Puedes practicar como invitado o iniciar sesión.</p>
+    <button class="btn" id="googleLogin" style="width:100%">Continuar con Google</button>
+    <div style="height:10px"></div>
+    <label for="phoneNumber" style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px">Registrarte o entrar con tu celular</label>
+    <input id="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" placeholder="+57 300 123 4567" style="width:100%;padding:12px;border-radius:10px;border:1px solid #316078;background:#061522;color:#effaff;font-size:16px">
+    <div id="recaptcha-container" style="margin:12px 0"></div>
+    <button class="btn secondary" id="sendCode" style="width:100%">Enviar código por SMS</button>
+    <div id="codeArea" style="display:none;margin-top:12px">
+      <label for="smsCode" style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px">Código recibido por SMS</label>
+      <input id="smsCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Escribe el código" style="width:100%;padding:12px;border-radius:10px;border:1px solid #316078;background:#061522;color:#effaff;font-size:16px">
+      <div style="height:8px"></div>
+      <button class="btn" id="verifyCode" style="width:100%">Verificar código</button>
+    </div>
+    <button class="btn secondary" id="logoutBtn" style="display:none;width:100%;margin-top:10px">Cerrar sesión</button>
+    <p id="authMessage" aria-live="polite" style="font-size:12px;margin-bottom:0">Pega la configuración de tu aplicación Firebase en el bloque indicado en este archivo antes de probar el acceso.</p>
+  </section>
+  <section class="card" id="walletCard">
+    <h3>💰 Billetera y retiros</h3>
+    <p><strong>Saldo de dinero real: no habilitado</strong></p>
+    <p>Las monedas y puntos de esta demo son solo para jugar. No hagas depósitos todavía: los pagos y retiros reales necesitan controles de seguridad y revisión legal antes de abrirse al público.</p>
+    <div class="controls">
+      <button class="btn secondary" id="depositBtn">Depositar $5.000</button>
+      <button class="btn secondary" id="withdrawBtn">Solicitar retiro</button>
+    </div>
+    <p id="walletMsg" aria-live="polite" style="font-size:12px;margin-bottom:0">Depósitos y retiros reales están desactivados en esta versión.</p>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><span>PUNTOS ESTA PARTIDA</span><strong id="score">0</strong></div>
+    <div class="stat"><span>RÉCORD EN ESTE DISPOSITIVO</span><strong id="best">0</strong></div>
+    <div class="stat"><span>TIEMPO</span><strong><b id="time">30</b>s</strong></div>
+  </div>
+  <section class="gamebox">
+    <div class="gamehead"><span>🟡 recoge monedas</span><span>🔴 evita obstáculos</span></div>
+    <div class="arena" id="arena" aria-label="Área del juego">
+      <div class="player" id="player">🛸</div>
+      <div class="lanehint">Toca la izquierda o derecha para moverte</div>
+      <div class="overlay" id="overlay">
+        <div style="font-size:44px">🎮</div><h2>¿Listo para el reto?</h2>
+        <p>Recoge 🟡 monedas y esquiva 🔴 obstáculos durante 30 segundos. Cada moneda suma puntos.</p>
+        <button class="btn" id="start">EMPEZAR A JUGAR</button>
+      </div>
+    </div>
+  </section>
+  <div class="controls">
+    <button class="btn secondary" id="left">⬅️ MOVER IZQUIERDA</button>
+    <button class="btn secondary" id="right">MOVER DERECHA ➡️</button>
+  </div>
+  <section class="card"><h3>🏆 Tu progreso</h3><p id="result">Juega una partida para registrar tu puntuación.</p><button class="btn secondary" id="resetBest">Reiniciar récord local</button></section>
+  <section class="card"><h3>💡 Próximos pasos</h3><ul><li>Esta demo funciona en el navegador del celular y no necesita cuenta.</li><li>El récord se guarda solamente en este dispositivo.</li><li>Para publicar puntuaciones entre usuarios, verificar trampas y hacer retiros reales, hará falta un servidor y reglas de recompensas.</li></ul><div class="notice">Importante: los puntos de esta demo son solo puntos de juego; no tienen valor monetario y no se pueden retirar. No se está prometiendo ni pagando dinero real.</div></section>
+  <div class="foot">Reto Imparable · Prototipo gratuito · Versión de prueba</div>
+</div>
+<script type="module">
+/*
+CONFIGURACIÓN DE FIREBASE:
+Reemplaza los cuatro textos PEGA_AQUI con los valores de tu aplicación web Firebase.
+No pegues contraseñas, claves privadas ni archivos de cuenta de servicio.
+*/
+const firebaseConfig = {
+  apiKey: "AIzaSyAdzKUTkfypRGclzW2feASfhei20pqIVeM",
+  authDomain: "yeison-javier-piedrahita.firebaseapp.com",
+  projectId: "yeison-javier-piedrahita",
+  appId: "1:58927750143:web:8c515854955b8bc377a5ca"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+  RecaptchaVerifier, signInWithPhoneNumber
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+const authMessage = document.getElementById('authMessage');
+const accountStatus = document.getElementById('accountStatus');
+const googleLogin = document.getElementById('googleLogin');
+const sendCodeBtn = document.getElementById('sendCode');
+const verifyCodeBtn = document.getElementById('verifyCode');
+const logoutBtn = document.getElementById('logoutBtn');
+const phoneInput = document.getElementById('phoneNumber');
+const codeInput = document.getElementById('smsCode');
+const codeArea = document.getElementById('codeArea');
+let auth = null;
+let confirmationResult = null;
+let recaptchaVerifier = null;
+
+const configReady = !Object.values(firebaseConfig).some(v => !v || v.startsWith("PEGA_AQUI"));
+function friendlyAuthError(e) {
+  const code = e && e.code ? e.code : '';
+  const messages = {
+    'auth/unauthorized-domain': 'Este dominio no está autorizado en Firebase Authentication. Añádelo en Configuración > Dominios autorizados.',
+    'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permite las ventanas emergentes o prueba desde Chrome.',
+    'auth/popup-closed-by-user': 'Cerraste la ventana de inicio de sesión antes de terminar.',
+    'auth/invalid-phone-number': 'El número no parece válido. Usa formato internacional, por ejemplo +573001234567.',
+    'auth/too-many-requests': 'Firebase limitó temporalmente los intentos. Espera antes de volver a probar.',
+    'auth/quota-exceeded': 'Se alcanzó el límite de SMS de Firebase. Revisa la cuota del proyecto.',
+    'auth/operation-not-allowed': 'Ese método de acceso no está habilitado en Firebase Authentication.',
+    'auth/invalid-verification-code': 'El código SMS es incorrecto o ya venció.',
+    'auth/captcha-check-failed': 'Falló la verificación anti-bots. Recarga la página y vuelve a intentarlo.'
+  };
+  return messages[code] || ('No se pudo completar el acceso (' + (code || 'error') + '). Revisa la configuración de Firebase e inténtalo otra vez.');
+}
+
+if (configReady) {
+  try {
+    const app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+
+    googleLogin.addEventListener('click', async () => {
+      try {
+        authMessage.textContent = 'Abriendo inicio de sesión de Google…';
+        await signInWithPopup(auth, new GoogleAuthProvider());
+      } catch (e) { authMessage.textContent = friendlyAuthError(e); }
+    });
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        accountStatus.textContent = 'Sesión iniciada: ' + (user.displayName || user.phoneNumber || user.email || 'usuario');
+        authMessage.textContent = 'Sesión activa. Los puntos siguen siendo de demostración y no tienen valor monetario.';
+        logoutBtn.style.display = 'block';
+        googleLogin.style.display = 'none';
+        sendCodeBtn.style.display = 'none';
+        phoneInput.style.display = 'none';
+        document.querySelector('label[for="phoneNumber"]').style.display = 'none';
+        document.getElementById('recaptcha-container').style.display = 'none';
+        codeArea.style.display = 'none';
+      } else {
+        accountStatus.textContent = 'No has iniciado sesión. Puedes practicar como invitado.';
+        logoutBtn.style.display = 'none';
+        googleLogin.style.display = 'block';
+        sendCodeBtn.style.display = 'block';
+        phoneInput.style.display = 'block';
+        document.querySelector('label[for="phoneNumber"]').style.display = 'block';
+        document.getElementById('recaptcha-container').style.display = 'block';
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      try { await signOut(auth); authMessage.textContent = 'Sesión cerrada.'; }
+      catch (e) { authMessage.textContent = friendlyAuthError(e); }
+    });
+
+    try {
+      recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'normal',
+        callback: () => { authMessage.textContent = 'Verificación completada. Ya puedes solicitar el SMS.'; },
+        'expired-callback': () => { authMessage.textContent = 'La verificación expiró. Vuelve a completarla.'; }
+      });
+      recaptchaVerifier.render();
+    } catch (e) {
+      authMessage.textContent = 'No se pudo cargar la verificación anti-bots. Revisa el dominio autorizado y vuelve a cargar la página.';
+    }
+
+    sendCodeBtn.addEventListener('click', async () => {
+      const phone = phoneInput.value.trim().replace(/[\s()-]/g, '');
+      if (!phone.startsWith('+') || phone.length < 10) {
+        authMessage.textContent = 'Escribe el número con código de país. En Colombia, por ejemplo: +57 3001234567.';
+        return;
+      }
+      try {
+        authMessage.textContent = 'Solicitando SMS… Firebase aplica límites de envío.';
+        confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+        codeArea.style.display = 'block';
+        authMessage.textContent = 'Solicitud enviada. Revisa tus SMS si Firebase aceptó el envío.';
+      } catch (e) {
+        authMessage.textContent = friendlyAuthError(e);
+      }
+    });
+
+    verifyCodeBtn.addEventListener('click', async () => {
+      const code = codeInput.value.trim();
+      if (!confirmationResult) { authMessage.textContent = 'Primero solicita el código SMS.'; return; }
+      if (!code) { authMessage.textContent = 'Escribe el código que recibiste.'; return; }
+      try {
+        await confirmationResult.confirm(code);
+        authMessage.textContent = 'Número verificado correctamente.';
+      } catch (e) { authMessage.textContent = friendlyAuthError(e); }
+    });
+  } catch (e) {
+    authMessage.textContent = 'Error al iniciar Firebase. Revisa que copiaste los datos correctos de la aplicación web.';
+  }
+} else {
+  authMessage.textContent = 'Falta configurar Firebase: reemplaza los cuatro textos PEGA_AQUI en firebaseConfig antes de probar.';
+  googleLogin.addEventListener('click', () => {
+    authMessage.textContent = 'Primero configura Firebase en el bloque firebaseConfig y publica el archivo en un dominio HTTPS autorizado.';
+  });
+  sendCodeBtn.addEventListener('click', () => {
+    authMessage.textContent = 'Primero configura Firebase en el bloque firebaseConfig. No se enviará ningún SMS todavía.';
+  });
+}
+
+const arena=document.getElementById('arena'), player=document.getElementById('player'), overlay=document.getElementById('overlay');
+const scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),timeEl=document.getElementById('time'),result=document.getElementById('result');
+let lane=1,score=0,time=30,running=false,items=[],spawnTimer=0,last=0,raf=0;
+let best=Number(localStorage.getItem('retoImparableBest')||0); bestEl.textContent=best;
+function placePlayer(){player.style.left=([20,50,80][lane])+'%'}
+function move(dir){if(!running)return;lane=Math.max(0,Math.min(2,lane+dir));placePlayer()}
+document.getElementById('left').addEventListener('click',()=>move(-1));document.getElementById('right').addEventListener('click',()=>move(1));
+arena.addEventListener('pointerdown',e=>{if(!running)return;const r=arena.getBoundingClientRect();move(e.clientX<r.left+r.width/2?-1:1)});
+function makeItem(){const el=document.createElement('div');const coin=Math.random()>.32;el.className='item';el.textContent=coin?'🟡':'🔴';const ln=Math.floor(Math.random()*3);el.style.left=([20,50,80][ln])+'%';el.dataset.lane=ln;el.dataset.coin=coin?'1':'0';el.dataset.y='-35';arena.appendChild(el);items.push(el)}
+function cleanup(){items.forEach(i=>i.remove());items=[]}
+function start(){cancelAnimationFrame(raf);cleanup();lane=1;score=0;time=30;spawnTimer=0;running=true;last=performance.now();scoreEl.textContent=score;timeEl.textContent=time;overlay.style.display='none';placePlayer();raf=requestAnimationFrame(loop)}
+function end(hit=false){running=false;cancelAnimationFrame(raf);overlay.style.display='flex';overlay.innerHTML=`<div style="font-size:44px">${hit?'💥':'🏁'}</div><h2>${hit?'¡Casi!':'¡Reto terminado!'}</h2><p>Conseguiste <strong style="color:#ffd166">${score} puntos</strong> en esta partida.</p><button class="btn" id="again">JUGAR OTRA VEZ</button>`;document.getElementById('again').onclick=start;if(score>best){best=score;localStorage.setItem('retoImparableBest',best);bestEl.textContent=best;result.textContent='¡Nuevo récord local! Lograste '+score+' puntos.'}else result.textContent='Terminaste con '+score+' puntos. Tu récord local es '+best+'.';cleanup()}
+function loop(now){if(!running)return;const dt=Math.min(40,now-last);last=now;spawnTimer+=dt;if(spawnTimer>650){makeItem();spawnTimer=0}time-=dt/1000;if(time<=0){time=0;timeEl.textContent='0';end();return}timeEl.textContent=Math.ceil(time);
+ const pr=player.getBoundingClientRect();for(let k=items.length-1;k>=0;k--){const it=items[k];let y=Number(it.dataset.y)+dt*.22;it.dataset.y=y;it.style.top=y+'px';const ir=it.getBoundingClientRect();if(ir.bottom>=pr.top+8&&ir.top<=pr.bottom&&Number(it.dataset.lane)===lane){if(it.dataset.coin==='1'){score+=10;scoreEl.textContent=score;it.remove();items.splice(k,1)}else{end(true);return}}else if(y>arena.clientHeight+40){it.remove();items.splice(k,1)}}raf=requestAnimationFrame(loop)}
+
+document.getElementById('depositBtn').addEventListener('click',()=>{
+  document.getElementById('walletMsg').textContent='Depósitos desactivados por ahora. No envíes dinero a ninguna llave para participar en esta demo.';
+});
+document.getElementById('withdrawBtn').addEventListener('click',()=>{
+  document.getElementById('walletMsg').textContent='Los retiros reales aún no están disponibles. No se ha creado una billetera real ni existe un saldo retirable en esta demo.';
+});
+document.getElementById('start').addEventListener('click',start);
+document.getElementById('resetBest').addEventListener('click',()=>{best=0;localStorage.removeItem('retoImparableBest');bestEl.textContent='0';result.textContent='Récord local reiniciado.'});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a')move(-1);if(e.key==='ArrowRight'||e.key.toLowerCase()==='d')move(1);if(e.key===' '&&!running)start()});
+</script>, player=document.getElementById('player'), overlay=document.getElementById('overlay');
+const scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),timeEl=document.getElementById('time'),result=document.getElementById('result');
+let lane=1,score=0,time=30,running=false,items=[],spawnTimer=0,last=0,raf=0;
+let best=Number(localStorage.getItem('retoImparableBest')||0); bestEl.textContent=best;
+function placePlayer(){player.style.left=([20,50,80][lane])+'%'}
+function move(dir){if(!running)return;lane=Math.max(0,Math.min(2,lane+dir));placePlayer()}
+document.getElementById('left').addEventListener('click',()=>move(-1));document.getElementById('right').addEventListener('click',()=>move(1));
+arena.addEventListener('pointerdown',e=>{if(!running)return;const r=arena.getBoundingClientRect();move(e.clientX<r.left+r.width/2?-1:1)});
+function makeItem(){const el=document.createElement('div');const coin=Math.random()>.32;el.className='item';el.textContent=coin?'🟡':'🔴';const ln=Math.floor(Math.random()*3);el.style.left=([20,50,80][ln])+'%';el.dataset.lane=ln;el.dataset.coin=coin?'1':'0';el.dataset.y='-35';arena.appendChild(el);items.push(el)}
+function cleanup(){items.forEach(i=>i.remove());items=[]}
+function start(){cancelAnimationFrame(raf);cleanup();lane=1;score=0;time=30;spawnTimer=0;running=true;last=performance.now();scoreEl.textContent=score;timeEl.textContent=time;overlay.style.display='none';placePlayer();raf=requestAnimationFrame(loop)}
+function end(hit=false){running=false;cancelAnimationFrame(raf);overlay.style.display='flex';overlay.innerHTML=`<div style="font-size:44px">${hit?'💥':'🏁'}</div><h2>${hit?'¡Casi!':'¡Reto terminado!'}</h2><p>Conseguiste <strong style="color:#ffd166">${score} puntos</strong> en esta partida.</p><button class="btn" id="again">JUGAR OTRA VEZ</button>`;document.getElementById('again').onclick=start;if(score>best){best=score;localStorage.setItem('retoImparableBest',best);bestEl.textContent=best;result.textContent='¡Nuevo récord local! Lograste '+score+' puntos.'}else result.textContent='Terminaste con '+score+' puntos. Tu récord local es '+best+'.';cleanup()}
+function loop(now){if(!running)return;const dt=Math.min(40,now-last);last=now;spawnTimer+=dt;if(spawnTimer>650){makeItem();spawnTimer=0}time-=dt/1000;if(time<=0){time=0;timeEl.textContent='0';end();return}timeEl.textContent=Math.ceil(time);
+ const pr=player.getBoundingClientRect();for(let k=items.length-1;k>=0;k--){const it=items[k];let y=Number(it.dataset.y)+dt*.22;it.dataset.y=y;it.style.top=y+'px';const ir=it.getBoundingClientRect();if(ir.bottom>=pr.top+8&&ir.top<=pr.bottom&&Number(it.dataset.lane)===lane){if(it.dataset.coin==='1'){score+=10;scoreEl.textContent=score;it.remove();items.splice(k,1)}else{end(true);return}}else if(y>arena.clientHeight+40){it.remove();items.splice(k,1)}}raf=requestAnimationFrame(loop)}
+
+document.getElementById('googleLogin').addEventListener('click',()=>{
+  document.getElementById('googleHelp').textContent='Para activar Google de verdad, el creador debe configurar Firebase Authentication, habilitar Google como proveedor y autorizar el dominio publicado. No introduzcas tu contraseña de Google en esta demo.';
+});
+document.getElementById('depositBtn').addEventListener('click',()=>{
+  document.getElementById('walletMsg').textContent='Depósitos desactivados por ahora. No envíes dinero a ninguna llave para participar en esta demo.';
+});
+document.getElementById('withdrawBtn').addEventListener('click',()=>{
+  document.getElementById('walletMsg').textContent='Los retiros reales aún no están disponibles. No se ha creado una billetera real ni existe un saldo retirable en esta demo.';
+});
+
+document.getElementById('start').addEventListener('click',start);
+document.getElementById('resetBest').addEventListener('click',()=>{best=0;localStorage.removeItem('retoImparableBest');bestEl.textContent='0';result.textContent='Récord local reiniciado.'});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a')move(-1);if(e.key==='ArrowRight'||e.key.toLowerCase()==='d')move(1);if(e.key===' '&&!running)start()});
+</script>
+</body>
+</html>
